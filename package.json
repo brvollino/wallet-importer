@@ -1,0 +1,76 @@
+{
+  "name": "wallet-importer",
+  "version": "0.0.1",
+  "description": "",
+  "author": {
+    "name": "Bruno Vollino",
+    "email": "bruno.vollino@gmail.com"
+  },
+  "files": [
+    "lib"
+  ],
+  "main": "lib/cli.js",
+  "keywords": [
+    ""
+  ],
+  "devDependencies": {
+    "coveralls": "3.0.3",
+    "eslint": "5.16.0",
+    "eslint-config-prettier": "4.1.0",
+    "eslint-config-xo": "0.26.0",
+    "eslint-plugin-prettier": "3.0.1",
+    "husky": "1.3.1",
+    "jest": "24.5.0",
+    "lec": "1.0.1",
+    "lint-staged": "8.1.5",
+    "prettier": "1.16.4"
+  },
+  "scripts": {
+    "prepublish": "lec lib/cli.js -c LF && npm audit",
+    "pretest": "eslint .",
+    "precommit": "lint-staged",
+    "test": "jest"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint",
+      "git add"
+    ],
+    "*.json": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "eslintConfig": {
+    "extends": [
+      "xo",
+      "prettier"
+    ],
+    "env": {
+      "jest": true,
+      "node": true
+    },
+    "rules": {
+      "function-paren-newline": "off"
+    },
+    "plugins": [
+      "prettier"
+    ]
+  },
+  "repository": "/wallet-importer",
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "bin": "lib/cli.js",
+  "dependencies": {
+    "banking": "^1.2.0",
+    "chalk": "2.4.2",
+    "fuse.js": "^3.4.4",
+    "got": "^9.6.0",
+    "moment": "^2.24.0",
+    "uuid": "^3.3.2",
+    "winston": "^3.2.1",
+    "yargs": "13.2.2"
+  },
+  "private": true
+}

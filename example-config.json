@@ -1,0 +1,41 @@
+{
+    "apiAuth": {
+        "user": "example@email.com",
+        "token": "token to access your Wallet account using its API. You can get one from the Android app."
+    },
+    "maxDate": "2019-03-31",
+    "files": [
+        {
+            "path": "file-1.ofx",
+            "format": "ofx",
+            "account": {
+                "name": "First account name on Wallet",
+                "type": "checking"
+            }
+        },
+        {
+            "path": "file-2.ofx",
+            "format": "ofx",
+            "account": {
+                "name": "Second account name on Wallet",
+                "type": "credit_card"
+            }
+        },
+        {
+            "path": "file-3.ofx",
+            "format": "ofx",
+            "account": {
+                "name": "Third account name on Wallet",
+                "type": "investment"
+            }
+        },
+        {
+            "path": "file-4.ofx",
+            "format": "ofx",
+            "account": {
+                "name": "Fourth account name on Wallet",
+                "type": "savings"
+            }
+        }
+    ]
+}
