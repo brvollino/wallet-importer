@@ -3,8 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "author": {
-    "name": "Bruno Vollino",
-    "email": "bruno.vollino@gmail.com"
+    "name": "Bruno Vollino"
   },
   "files": [
     "lib"
