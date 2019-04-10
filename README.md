@@ -1,5 +1,5 @@
 # wallet-importer
-> Import OFX transaction files to your banking accounts on Wallet.
+> Import OFX transaction files to your banking accounts on Wallet (budgetbakers.com).
 - The records' categories will be guessed from the notes and categories of records preexisting in your Wallet.
 - Transfers between your accounts will be inferred based on the OFX account IDs and notes of record  preexisting in your Wallet.
 - All records will be imported with a 'cleared' Payment Status. I suggest you to change all your Wallet record status to 'Reconciled' before you use the importer, so you can track which records were imported.
