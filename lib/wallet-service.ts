@@ -1,49 +1,49 @@
 'use strict';
 
-const got = require('got');
+import got from 'got';
 
-class WalletService {
-    async getWalletAccounts(apiAuth) {
+export class WalletService {
+    async getWalletAccounts(apiAuth: any) {
         return (await got('https://api.budgetbakers.com/api/v1/accounts', {
             headers: {
                 'X-User': apiAuth.user,
                 'X-Token': apiAuth.token
             },
-            json: true
+            responseType: 'json'
         })).body;
     }
 
-    async getWalletCategories(apiAuth) {
+    async getWalletCategories(apiAuth: any) {
         return (await got('https://api.budgetbakers.com/api/v1/categories', {
             headers: {
                 'X-User': apiAuth.user,
                 'X-Token': apiAuth.token
             },
-            json: true
+            responseType: 'json'
         })).body;
     }
 
-    async getWalletCurrencies(apiAuth) {
+    async getWalletCurrencies(apiAuth: any) {
         return (await got('https://api.budgetbakers.com/api/v1/currencies', {
             headers: {
                 'X-User': apiAuth.user,
                 'X-Token': apiAuth.token
             },
-            json: true
+            responseType: 'json'
         })).body;
     }
 
-    async getAllRecords(apiAuth) {
+    async getAllRecords(apiAuth: any) {
         return (await got('https://api.budgetbakers.com/api/v1/records', {
             headers: {
                 'X-User': apiAuth.user,
                 'X-Token': apiAuth.token
             },
-            json: true
+            responseType: 'json'
         })).body;
     }
 
-    async sendRecordsToWallet(apiAuth, transactions) {
+    async sendRecordsToWallet(apiAuth: any, transactions: any) {
         try {
             return await got.post('https://api.budgetbakers.com/api/v1/records-bulk', {
                 headers: {
@@ -51,8 +51,8 @@ class WalletService {
                     'X-Token': apiAuth.token,
                     'Content-Type': 'application/json'
                 },
-                body: transactions,
-                json: true
+                json: transactions,
+                responseType: 'json'
             });
         } catch (error) {
             console.log(error.response);
@@ -60,5 +60,3 @@ class WalletService {
         }
     }
 }
-
-module.exports = new WalletService();

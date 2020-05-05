@@ -19,7 +19,7 @@ wallet-importer import-files --config example-config.json --dry-run
 
 ```sh
 # To effectively send transactions to wallet. It still creates the 'wallet_records.json' file for logging purposes.
-wallet-importer import-files --config example-config.json --dry-run
+wallet-importer import-files --config example-config.json
 ```
 
 Check the configuration options in the file "example-config.json".

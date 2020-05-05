@@ -1,9 +1,19 @@
 'use strict';
 
+import moment from 'moment';
 const Banking = require('banking');
-const moment = require('moment');
 
-function convertListOfOfxTransactions(walletAccount, ofxBankAccount, ofxTransactions, currency) {
+export class OfxParser {
+    async parseOfxFiles(files: any) {
+        const promises = files.map((file: any) => {
+            return parseOfxFile(file);
+        });
+        var transactionLists = await Promise.all(promises);
+        return flat(transactionLists);
+    }
+}
+
+function convertListOfOfxTransactions(walletAccount: any, ofxBankAccount: any, ofxTransactions: any, currency: any) {
     if (!ofxTransactions) {
         return [];
     }
@@ -12,7 +22,7 @@ function convertListOfOfxTransactions(walletAccount, ofxBankAccount, ofxTransact
         ofxTransactions = [ofxTransactions];
     }
 
-    return ofxTransactions.map(transaction => {
+    return ofxTransactions.map((transaction: any) => {
         return {
             walletAccount: walletAccount,
             id: {
@@ -35,8 +45,8 @@ function convertListOfOfxTransactions(walletAccount, ofxBankAccount, ofxTransact
     });
 }
 
-function convertAllOfxTransactions(walletAccount, parsed) {
-    let transactions = [];
+function convertAllOfxTransactions(walletAccount: any, parsed: any) {
+    let transactions: any[] = [];
     const ofxBody = parsed.body.OFX;
     if (ofxBody.CREDITCARDMSGSRSV1) {
         const ofxBankAccount = ofxBody.CREDITCARDMSGSRSV1.CCSTMTTRNRS.CCSTMTRS.CCACCTFROM;
@@ -58,9 +68,9 @@ function convertAllOfxTransactions(walletAccount, parsed) {
     return transactions;
 }
 
-function parseOfxFile(file) {
+function parseOfxFile(file: any) {
     const promise = new Promise(function(resolve) {
-        Banking.parseFile(file.path, function(parsed) {
+        Banking.parseFile(file.path, function(parsed: any) {
             console.log('Converting ' + file.path);
             const oneFileTransactions = convertAllOfxTransactions(file.account, parsed);
             console.log('Converted ' + file.path);
@@ -71,18 +81,8 @@ function parseOfxFile(file) {
     return promise;
 }
 
-function flat(nestedList) {
-    return nestedList.reduce((acc, value) => acc.concat(value));
+function flat(nestedList: any) {
+    return nestedList.reduce((acc: any, value: any) => acc.concat(value));
 }
 
-class OfxParser {
-    async parseOfxFiles(files) {
-        const promises = files.map(file => {
-            return parseOfxFile(file);
-        });
-        var transactionLists = await Promise.all(promises);
-        return flat(transactionLists);
-    }
-}
-
-module.exports = new OfxParser();
+//module.exports = new OfxParser();

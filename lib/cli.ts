@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 'use strict';
-const OfxImporter = require('./ofx-importer.js');
+
+import {OfxImporter} from './ofx-importer.js'
+import {WalletService} from './wallet-service.js'
+import yargs = require('yargs')
+
 const winston = require('winston');
 
 const logger = winston.createLogger({
@@ -26,23 +30,28 @@ if (process.env.NODE_ENV !== 'production') {
     );
 }
 
-require('yargs')
+
+yargs
     .usage('Usage: $0 <command> [options]')
     .command(
         'import-files',
         'Import transaction files to accounts',
-        function(yargs) {
+        (yargs: any) => {
             yargs.example('$0 import-files --config <file>')
                 .config('config',
                     `Path for JSON config file containing this structure:
                     {
-                        "apiToken": <apiToken>,
+                        "apiAuth": {
+                            "user": "<walletUser>",
+                            "token": "<apiToken>"
+                        },
+                        "maxDate": "2019-04-30",
                         "files": [
-                        {
-                            "path": <filePath>,
-                            "format": "ofx",
-                            "account": <destinationAccount>
-                        }
+                            {
+                                "path": <filePath>,
+                                "format": "ofx",
+                                "account": <destinationAccount>
+                            }
                         ]
                     }
                     `)
@@ -50,8 +59,9 @@ require('yargs')
                 .describe('dry-run', "Don't send any operations, only output to the console")
                 .boolean('dry-run');
         },
-        function(argv) {
-            new OfxImporter(logger).import(argv.apiAuth, argv.maxDate, argv['dry-run'], argv.files);
+        (argv: any) => {
+            new OfxImporter(logger, new WalletService()).import(argv.apiAuth, argv.maxDate, argv['dry-run'], argv.files);
         }
     )
-    .help('h').alias('h', 'help');
+    .help('h').alias('h', 'help')
+    .argv;
