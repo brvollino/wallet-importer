@@ -1,31 +1,34 @@
 #!/usr/bin/env node
 'use strict';
 
-import {OfxImporter} from './ofx-importer.js'
-import {WalletService} from './wallet-service.js'
+import * as winston from 'winston';
+import { ImportFileConfig } from './cli/import-file-config.js';
+import { FinancialTransactionsImporter } from './financial-transactions-importer.js';
+import { OfxFileLoader } from './ofx/ofx-file-loader.js';
+import { WalletService } from './wallet/wallet-service';
 import yargs = require('yargs')
 
-const winston = require('winston');
 
-const logger = winston.createLogger({
+const logger: winston.Logger = winston.createLogger({
     level: 'info',
-    format: winston.format.combine(winston.format.colorize(), winston.format.json()),
-    prettyPrint: true,
+    format: winston.format.combine(
+        winston.format.colorize(), 
+        winston.format.json(), 
+        winston.format.prettyPrint()),
     transports: [
         new winston.transports.File({ filename: 'error.log', level: 'error' }),
         new winston.transports.File({ filename: 'combined.log' })
     ]
 });
 if (process.env.NODE_ENV !== 'production') {
-    logger.add(
-        new winston.transports.Console({
+    logger.add(new winston.transports.Console(
+        {
             format: winston.format.combine(
                 winston.format.colorize(),
                 winston.format.splat(),
                 winston.format.simple(),
                 winston.format.timestamp(),
-                winston.format.prettyPrint()
-            )
+                winston.format.prettyPrint())
         })
     );
 }
@@ -60,7 +63,8 @@ yargs
                 .boolean('dry-run');
         },
         (argv: any) => {
-            new OfxImporter(logger, new WalletService()).import(argv.apiAuth, argv.maxDate, argv['dry-run'], argv.files);
+            new FinancialTransactionsImporter(logger, new OfxFileLoader(), new WalletService())
+                .import(argv.apiAuth, argv.maxDate, argv['dry-run'], argv.files as ImportFileConfig[]);
         }
     )
     .help('h').alias('h', 'help')

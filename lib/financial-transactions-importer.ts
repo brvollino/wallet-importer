@@ -1,59 +1,63 @@
 'use strict';
 
-import moment from 'moment';
-import {OfxParser} from './ofx-parser'
-import {WalletService} from './wallet-service';
-import {v4 as uuidv4} from 'uuid';
-const fs = require('fs');
 import Fuse from 'fuse.js';
+import moment from 'moment';
+import { v4 as uuidv4 } from 'uuid';
+import { ImportFileConfig } from './cli/import-file-config';
+import { FileLoader } from './file-loader';
+import { Account, Category, Currency, FinancesManagerService, Transaction } from './finances-manager-service';
+import { OfxTransaction } from './ofx/ofx-file-loader';
+const fs = require('fs');
 
-export class OfxImporter {
-    constructor(private logger: any, private financesManagerService: WalletService) {
-    }
+export class FinancialTransactionsImporter {
+    constructor(
+        private logger: any, 
+        private fileLoader: FileLoader,
+        private financesService: FinancesManagerService) { }
 
-    async import(apiAuth: any, maxDate: string, dryRun: boolean, files: any) {
+    async import(apiAuth: any, maxDate: string, dryRun: boolean, files: ImportFileConfig[]) {
         this.logger.info('Importing files: dryRun: %s, files: %o', dryRun, files);
-        let transactions = await new OfxParser().parseOfxFiles(files);
+        let transactions: OfxTransaction[] = await this.fileLoader.loadTransactions(files);
         transactions = transactions.sort((t1: any, t2: any) => {
             return t1.date.diff(t2.date);
         });
         const max = moment(maxDate).endOf('day');
         transactions = transactions.filter((tr: any) => tr.date.isSameOrBefore(max));
 
-        const walletAccounts = await this.financesManagerService.getWalletAccounts(apiAuth);
-        const walletCurrencies = await this.financesManagerService.getWalletCurrencies(apiAuth);
-        const walletCategories = await this.financesManagerService.getWalletCategories(apiAuth);
+        const accounts = await this.financesService.getAccounts(apiAuth);
+        const currencies = await this.financesService.getCurrencies(apiAuth);
+        const categories = await this.financesService.getCategories(apiAuth);
         this.logger.info({
-            walletAccounts: walletAccounts,
-            walletCategories: walletCategories,
-            walletCurrencies: walletCurrencies
+            accounts: accounts,
+            categories: categories,
+            currencies: currencies
         });
 
-        const allWalletRecords = await this.financesManagerService.getAllRecords(apiAuth);
-        const walletRecordsFuseSearch = getFuseSearch(allWalletRecords, ['note']);
+        const allRecords = await this.financesService.getAllTransactions(apiAuth);
+        const recordsFuseSearch = getFuseSearch(allRecords, ['note']);
 
-        detectTransfers(transactions, walletRecordsFuseSearch);
+        detectTransfers(transactions, recordsFuseSearch);
 
         fs.writeFile('transactions.json', JSON.stringify(transactions, null, 2));
 
-        const walletRecords = convertToWalletRecords(
+        const records = convertToTransactions(
             transactions,
-            walletAccounts,
-            walletCategories,
-            walletCurrencies,
-            walletRecordsFuseSearch
+            accounts,
+            categories,
+            currencies,
+            recordsFuseSearch
         );
 
-        fs.writeFile('wallet_records.json', JSON.stringify(walletRecords, null, 2));
+        fs.writeFile('wallet_records.json', JSON.stringify(records, null, 2));
 
         if (!dryRun) {
-            this.financesManagerService.sendRecordsToWallet(apiAuth, walletRecords);
+            this.financesService.writeRecords(apiAuth, records);
         }
     }
 }
 
 function getPaymentType(transaction: any) {
-    switch (transaction.walletAccount.type) {
+    switch (transaction.account.type) {
         case 'credit_card':
             return transaction.amount > 0 ? 'transfer' : 'credit_card';
         case 'checking':
@@ -69,41 +73,44 @@ function getMostSimilarRecords(walletRecordsFuseSearch: any, transaction: any) {
     return walletRecordsFuseSearch.search(transaction.memo);
 }
 
-function getCategory(transaction: any, walletCategories: any, walletRecordsFuseSearch: any) {
+function getCategory(transaction: any, categories: any, walletRecordsFuseSearch: any): Category {
     const mostSimilarRecordWithCategory = getMostSimilarRecords(
         walletRecordsFuseSearch,
         transaction
     ).find((record: any) => record.categoryId);
     if (transaction.transferId) {
-        return walletCategories.find((category: any) => category.name === 'Transfer').id;
+        return categories.find((category: any) => category.name.toLowerCase() === 'transfer').id;
     }
 
     if (mostSimilarRecordWithCategory) {
         return mostSimilarRecordWithCategory.categoryId;
     }
 
-    return walletCategories.find((category: any) => category.name === 'Others').id;
+    return categories.find((category: any) => category.name.toLowerCase() === 'others');
 }
 
-function convertToWalletRecords(
-    transactions: any, walletAccounts: any, walletCategories: any, walletCurrencies: any, walletRecordsFuseSearch: any) {
-    return transactions.map((tr: any) => {
-        const account = walletAccounts.find((acc: any) => acc.name === tr.walletAccount.name);
-        const record = {
-            currencyId: walletCurrencies.find((curr: any) => curr.code === tr.currency).id,
-            accountId: account.id,
-            categoryId: getCategory(tr, walletCategories, walletRecordsFuseSearch),
+function convertToTransactions(
+        transactions: OfxTransaction[], 
+        accounts: Account[], categories: Category[],
+        currencies: Currency[],
+        walletRecordsFuseSearch: any): Transaction[] {
+    return transactions.map((tr: OfxTransaction) => {
+        const account = accounts.find((acc: any) => acc.name === tr.account.name);
+        const transaction = {
+            currency: currencies.find((curr: any) => curr.code === tr.currency),
+            account: account,
+            category: getCategory(tr, categories, walletRecordsFuseSearch),
             amount: tr.amount,
             paymentType: getPaymentType(tr),
-            note: tr.memo,
-            date: tr.date.toISOString(),
-            recordState: 'cleared'
-        } as WalletRecord;
-        if (tr.transferId) {
-            record.transferId = tr.transferId;
+            description: tr.memo,
+            date: tr.date,
+            state: 'cleared'
+        } as Transaction
+        if (transaction.transferId) {
+            transaction.transferId = transaction.transferId;
         }
 
-        return record;
+        return transaction;
     });
 }
 
