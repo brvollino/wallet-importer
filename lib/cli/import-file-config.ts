@@ -1,6 +1,18 @@
+export interface ImportConfig {
+    apiAuth: ApiAuth
+    maxDate: string
+    destination: 'wallet' | 'firefly3'
+    files: ImportFileConfig[]
+}
+
+export interface ApiAuth {
+    user: string
+    token: string
+}
+
 export interface ImportFileConfig {
     path: string
-    type: 'ofx',
+    format: 'ofx' | 'wallet',
     account: AccountConfig
 }
 

@@ -32,7 +32,7 @@ export class WalletService implements FinancesManagerService {
                 currency: {
                     id: rec.currencyId
                 },
-                account: {
+                sourceAccount: {
                     id: rec.accountId
                 },
                 category: {
@@ -48,7 +48,7 @@ export class WalletService implements FinancesManagerService {
         }) as Transaction[]
     }
 
-    async writeRecords(apiAuth: any, transactions: Transaction[]) {
+    async createRecords(apiAuth: any, transactions: Transaction[]) {
         const walletRecords = this.convertToWalletRecords(transactions)
         try {
             return await got.post('https://api.budgetbakers.com/api/v1/records-bulk', {
@@ -57,7 +57,7 @@ export class WalletService implements FinancesManagerService {
                     'X-Token': apiAuth.token,
                     'Content-Type': 'application/json'
                 },
-                json: transactions,
+                json: walletRecords,
                 responseType: 'json'
             });
         } catch (error) {
@@ -77,20 +77,20 @@ export class WalletService implements FinancesManagerService {
     }
 
     private convertToWalletRecords(transactions: Transaction[]): WalletRecord[] {
-    return transactions.map((tr: Transaction) => {
-        const record = {
-            currencyId: tr.currency.id,
-            accountId: tr.account.id,
-            categoryId: tr.category.id,
-            amount: tr.amount,
-            paymentType: tr.paymentType,
-            note: tr.description,
-            date: tr.date.toISOString(),
-            recordState: 'cleared',
-            transferId: tr.transferId
-        } as WalletRecord;
+        return transactions.map((tr: Transaction) => {
+            const record = {
+                currencyId: tr.currency.id,
+                accountId: tr.sourceAccount?.id || tr.destinationAccount?.id,
+                categoryId: tr.category.id,
+                amount: tr.amount,
+                paymentType: tr.paymentType,
+                note: tr.description,
+                date: tr.date.toISOString(),
+                recordState: 'cleared',
+                transferId: tr.transferId
+            } as WalletRecord;
 
-        return record;
-    });
-}
+            return record;
+        });
+    }
 }

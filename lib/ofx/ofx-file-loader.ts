@@ -17,7 +17,8 @@ export interface OfxTransaction {
     date: Moment,
     amount: number,
     currency: string,
-    memo: string
+    memo: string,
+    category?: string
 }
 
 export interface OfxBankAccount {

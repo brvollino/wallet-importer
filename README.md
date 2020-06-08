@@ -13,12 +13,12 @@ $ npm install -g
 ## Usage
 
 ```sh
-# This will only test importing and not send transactions to Wallet. It will create a 'wallet_records.json' file so you can check the records that would be created
+# This will only test importing and not send transactions to Wallet. It will create a 'transactions.json' file so you can check the records that would be created
 wallet-importer import-files --config example-config.json --dry-run
 ```
 
 ```sh
-# To effectively send transactions to wallet. It still creates the 'wallet_records.json' file for logging purposes.
+# To effectively send transactions to wallet. It still creates the 'transactions.json' file for logging purposes.
 wallet-importer import-files --config example-config.json
 ```
 

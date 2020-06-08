@@ -16,6 +16,7 @@
   ],
   "devDependencies": {
     "coveralls": "3.0.3",
+    "csv": "^5.3.2",
     "eslint": "5.16.0",
     "eslint-config-prettier": "4.1.0",
     "eslint-config-xo": "0.26.0",

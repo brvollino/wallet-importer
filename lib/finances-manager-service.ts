@@ -1,11 +1,12 @@
 import { Moment } from "moment";
+import { ApiAuth } from "./cli/import-file-config";
 
 export interface FinancesManagerService {
-    getAccounts(apiAuth: any): Promise<Account[]>
-    getCategories(apiAuth: any): Promise<Category[]>
-    getCurrencies(apiAuth: any): Promise<Currency[]>
-    getAllTransactions(apiAuth: any): Promise<Transaction[]>
-    writeRecords(apiAuth: any, transactions: Transaction[]): any
+    getAccounts(apiAuth: ApiAuth): Promise<Account[]>
+    getCategories(apiAuth: ApiAuth): Promise<Category[]>
+    getCurrencies(apiAuth: ApiAuth): Promise<Currency[]>
+    getAllTransactions(apiAuth: ApiAuth): Promise<Transaction[]>
+    createRecords(apiAuth: ApiAuth, transactions: Transaction[]): any
 }
 
 export interface Account {
@@ -24,14 +25,25 @@ export interface Currency {
     code: string
 }
 
+export enum TransactionType {
+    WITHDRAWAL = 'withdrawal',
+    DEPOSIT = 'deposit',
+    TRANSFER = 'transfer',
+    OTHER = 'othe'
+}
+
 export interface Transaction {
+    id: number,
     currency: Currency
-    account: Account,
+    sourceAccount: Account,
+    destinationAccount: Account,
     category: Category,
     amount: number,
     paymentType: string,
     description: string,
     date: Moment,
     state: string,
-    transferId?: string
+    transferId?: string,
+    reconciled: boolean,
+    type: TransactionType
 }
