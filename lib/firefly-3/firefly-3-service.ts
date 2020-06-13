@@ -165,7 +165,8 @@ export class Firefly3Service implements FinancesManagerService {
                         description: tr.description || 'No description',
                         currency_id: parseInt(tr.currency.id),
                         category_name: tr.category.name,
-                        reconciled: tr.reconciled
+                        reconciled: tr.reconciled,
+                        tags: ['Imported', 'Unverified']
                     }
                 ]
             } as Firefly3Transaction
@@ -252,7 +253,8 @@ interface Firefly3Transaction {
             destination_name?: string
             readonly destination_type: string
             reconciled?: boolean
-            notes?: string[]
+            notes?: string[],
+            tags?: string[]
         }
     ]
 }
