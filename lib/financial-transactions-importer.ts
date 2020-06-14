@@ -56,7 +56,7 @@ export class FinancialTransactionsImporter {
 
         logger.info('Getting all transactions from service')
         const allRecords: Transaction[] = await this.financesService.getAllTransactions(apiAuth);
-        const transactionsFuseSearch: Fuse<Transaction, any> = getFuseSearch(allRecords, ['note']);
+        const transactionsFuseSearch: Fuse<Transaction, any> = getFuseSearch(allRecords, ['description']);
 
         logger.info('Writing parsed transactions file')
         fs.writeFile('parsed_transactions.json', JSON.stringify(transactions, null, 2), _ => {})
