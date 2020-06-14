@@ -3,6 +3,7 @@
 import moment, { Moment } from 'moment';
 import { AccountConfig, ImportFileConfig } from '../cli/import-file-config';
 import { FileLoader } from '../file-loader';
+import * as path from 'path'
 const Banking = require('banking');
 
 export interface OfxTransaction {
@@ -18,7 +19,8 @@ export interface OfxTransaction {
     amount: number,
     currency: string,
     memo: string,
-    category?: string
+    category?: string,
+    filename: string
 }
 
 export interface OfxBankAccount {
@@ -38,7 +40,8 @@ export class OfxFileLoader implements FileLoader {
     }
 }
 
-function convertListOfOfxTransactions(account: AccountConfig, ofxBankAccount: any, 
+function convertListOfOfxTransactions(
+        file: ImportFileConfig, ofxBankAccount: any, 
         parsedTransactions: OfxTransaction[], currency: string): OfxTransaction[] {
     if (!parsedTransactions) {
         return [];
@@ -50,7 +53,7 @@ function convertListOfOfxTransactions(account: AccountConfig, ofxBankAccount: an
 
     return parsedTransactions.map((transaction: any) => {
         return {
-            account: account,
+            account: file.account,
             id: {
                 fitId: transaction.FITID,
                 checkNum: transaction.CHECKNUM,
@@ -66,12 +69,13 @@ function convertListOfOfxTransactions(account: AccountConfig, ofxBankAccount: an
             date: moment(transaction.DTPOSTED, 'YYYYMMDDHHmmss'),
             amount: parseFloat(transaction.TRNAMT),
             currency: currency,
-            memo: transaction.MEMO
+            memo: transaction.MEMO,
+            filename: path.parse(file.path).name
         } as OfxTransaction;
     });
 }
 
-function convertAllOfxTransactions(account: AccountConfig, parsedFile: any): OfxTransaction[] {
+function convertAllOfxTransactions(file: ImportFileConfig, parsedFile: any): OfxTransaction[] {
     let transactions: any[] = [];
     const ofxBody = parsedFile.body.OFX;
     if (ofxBody.CREDITCARDMSGSRSV1) {
@@ -80,7 +84,7 @@ function convertAllOfxTransactions(account: AccountConfig, parsedFile: any): Ofx
             ofxBody.CREDITCARDMSGSRSV1.CCSTMTTRNRS.CCSTMTRS.BANKTRANLIST.STMTTRN;
         const currency = ofxBody.CREDITCARDMSGSRSV1.CCSTMTTRNRS.CCSTMTRS.CURDEF;
         transactions = transactions.concat(
-            convertListOfOfxTransactions(account, ofxBankAccount, ofxTransactions, currency));
+            convertListOfOfxTransactions(file, ofxBankAccount, ofxTransactions, currency));
     }
 
     if (ofxBody.BANKMSGSRSV1) {
@@ -88,7 +92,7 @@ function convertAllOfxTransactions(account: AccountConfig, parsedFile: any): Ofx
         const ofxTransactions = ofxBody.BANKMSGSRSV1.STMTTRNRS.STMTRS.BANKTRANLIST.STMTTRN;
         const currency = ofxBody.BANKMSGSRSV1.STMTTRNRS.STMTRS.CURDEF;
         transactions = transactions.concat(
-            convertListOfOfxTransactions(account, ofxBankAccount, ofxTransactions, currency));
+            convertListOfOfxTransactions(file, ofxBankAccount, ofxTransactions, currency));
     }
 
     return transactions;
@@ -98,7 +102,7 @@ function parseOfxFile(file: ImportFileConfig): Promise<OfxTransaction[]> {
     const promise = new Promise<OfxTransaction[]>(function(resolve) {
         Banking.parseFile(file.path, function(parsedFile: any) {
             console.log('Converting ' + file.path);
-            const oneFileTransactions = convertAllOfxTransactions(file.account, parsedFile);
+            const oneFileTransactions = convertAllOfxTransactions(file, parsedFile);
             console.log('Converted ' + file.path);
             resolve(oneFileTransactions);
         });

@@ -105,10 +105,12 @@ export class Firefly3Service implements FinancesManagerService {
     async geAllPaginated<T>(url: string, apiAuth: ApiAuth): Promise<FireflyResource<T>[]> {
         let all: FireflyResource<T>[] = []
         let pagedResponse: PagedResponse<T>
+        let page = 0
         do {
-            const body = (await this.get(url, apiAuth)).body
+            const body = (await this.get(url, apiAuth, {page: page})).body
             pagedResponse = body as PagedResponse<T>
             all = all.concat(pagedResponse.data)
+            page++
         } while(pagedResponse.meta.pagination.current_page < 
             pagedResponse.meta.pagination.total_pages)
 
@@ -128,7 +130,6 @@ export class Firefly3Service implements FinancesManagerService {
                         'Authorization': 'Bearer ' + apiAuth.token,
                         'Content-Type': 'application/json'
                     },
-                    //json: tr,
                     body: JSON.stringify(tr),
                     responseType: 'json'
                 })
@@ -143,12 +144,14 @@ export class Firefly3Service implements FinancesManagerService {
         }
     }
 
-    private get(url: string, apiAuth: ApiAuth) {
+    private get(url: string, apiAuth: ApiAuth, 
+            queryParams?: {[key: string]: string | number | boolean | null}) {
         return got(url, {
             headers: {
                 'Authorization': 'Bearer ' + apiAuth.token
             },
-            responseType: 'json'
+            responseType: 'json',
+            searchParams: queryParams
         })
     }
 
@@ -166,7 +169,7 @@ export class Firefly3Service implements FinancesManagerService {
                         currency_id: parseInt(tr.currency.id),
                         category_name: tr.category.name,
                         reconciled: tr.reconciled,
-                        tags: ['Imported', 'Unverified']
+                        tags: tr.tags
                     }
                 ]
             } as Firefly3Transaction

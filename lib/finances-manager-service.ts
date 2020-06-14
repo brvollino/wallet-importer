@@ -45,5 +45,6 @@ export interface Transaction {
     state: string,
     transferId?: string,
     reconciled: boolean,
-    type: TransactionType
+    type: TransactionType,
+    tags: string[]
 }

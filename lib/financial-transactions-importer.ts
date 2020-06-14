@@ -33,7 +33,7 @@ export class FinancialTransactionsImporter {
         for (let file of files) {
             logger.info('Parsing file: %o', file);
             const fileLoader = this.getFileLoader(file)
-            transactions = transactions.concat(await fileLoader.loadTransactions(files))
+            transactions = transactions.concat(await fileLoader.loadTransactions([file]))
         }
 
         transactions = transactions.sort((t1: any, t2: any) => {
@@ -149,7 +149,8 @@ function convertToTransactions(
             date: ofxTr.date,
             state: 'cleared',
             reconciled: false,
-            type: getTransactionType(ofxTr)
+            type: getTransactionType(ofxTr),
+            tags: ['Imported', 'Unverified', ofxTr.filename]
         } as Transaction
         if (ofxTr.category) {
             transaction.category = {name: ofxTr.category} as Category
