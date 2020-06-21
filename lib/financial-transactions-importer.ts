@@ -36,11 +36,12 @@ export class FinancialTransactionsImporter {
             transactions = transactions.concat(await fileLoader.loadTransactions([file]))
         }
 
-        transactions = transactions.sort((t1: any, t2: any) => {
+        transactions = transactions.sort((t1: OfxTransaction, t2: OfxTransaction) => {
             return t1.date.diff(t2.date)
         })
         const max = moment(maxDate).endOf('day');
-        transactions = transactions.filter((tr: any) => tr.date.isSameOrBefore(max))
+        transactions = transactions.filter((tr: OfxTransaction) => 
+            tr.date.isSameOrBefore(max) || tr.account.type === 'credit_card')
         
         logger.info('Getting accounts')
         const accounts = await this.financesService.getAccounts(apiAuth);

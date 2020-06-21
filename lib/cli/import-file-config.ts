@@ -18,5 +18,5 @@ export interface ImportFileConfig {
 
 export interface AccountConfig {
     name: string,
-    type: string
+    type: 'investment' | 'checking' | 'savings' | 'credit_card'
 }
